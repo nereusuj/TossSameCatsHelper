@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Find The Cat</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_exit">Exit</string>
+    <string name="action_about">About</string>
+    <string name="about_title">About</string>
+    <string name="about_developer">Developer: NereusUJ</string>
+    <string name="about_website">https://github.com/nereusuj/TossSameCatsHelper</string>
+    <string name="about_version">Version 1.0</string>
+    <string name="overlay_channel_name">Overlay Service</string>
+    <string name="overlay_notification_title">Toss Cat Helper</string>
+    <string name="overlay_notification_content">Overlay is running</string>
+    <string name="msg_saved">Saved: %s</string>
+    <string name="error_capture_failed">Screen capture failed</string>
+    <string name="grid_2x2">2x2</string>
+    <string name="grid_3x2">3x2</string>
+    <string name="grid_4x2">4x2</string>
+    <string name="grid_4x3">4x3</string>
+    <string name="grid_4x4">4x4</string>
+    <string name="grid_5x4">5x4</string>
+    <string name="grid_6x4">6x4</string>
+    <string name="grid_6x5">6x5</string>
+    <string name="permission_required">Overlay &amp; Media Projection permissions are required.</string>
+    <string name="btn_start_service">Start Overlay</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">고양이를 찾아줘</string>
+    <string name="action_stop">중지</string>
+    <string name="action_exit">종료</string>
+    <string name="action_about">정보</string>
+    <string name="about_title">정보</string>
+    <string name="about_developer">개발자: NereusUJ</string>
+    <string name="about_website">https://github.com/nereusuj/TossSameCatsHelper</string>
+    <string name="about_version">버전 1.0</string>
+    <string name="overlay_channel_name">오버레이 서비스</string>
+    <string name="overlay_notification_title">고양이를 찾아줘</string>
+    <string name="overlay_notification_content">오버레이가 실행 중입니다</string>
+    <string name="msg_saved">저장됨: %s</string>
+    <string name="error_capture_failed">화면 캡처 실패</string>
+    <string name="permission_required">오버레이 및 화면 캡처 권한이 필요합니다.</string>
+    <string name="btn_start_service">오버레이 시작</string>
+</resources>

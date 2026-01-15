@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="4dp"
+    android:gravity="center_vertical">
+
+    <HorizontalScrollView
+        android:id="@+id/scroll_grids"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <!-- Grid Buttons -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_2x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_2x2"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_3x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_3x2"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_4x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_4x2"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_4x3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_4x3"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_4x4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_4x4"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_5x4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_5x4"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_6x4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_6x4"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btn_6x5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/grid_6x5"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="48dp"
+                android:backgroundTint="@color/button_grey"
+                android:layout_marginEnd="4dp"/>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/action_stop"
+        android:visibility="gone"
+        android:backgroundTint="@color/button_grey"
+        android:textColor="@color/white"
+        android:minHeight="48dp"/>
+
+    <Button
+        android:id="@+id/btn_exit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/action_exit"
+        android:backgroundTint="@color/dull_red"
+        android:textColor="@color/white"
+        android:minHeight="48dp"
+        android:layout_marginStart="8dp"/>
+
+</LinearLayout>

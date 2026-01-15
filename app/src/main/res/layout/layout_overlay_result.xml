@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- The ResultView will be added programmatically or we can define it here if the class exists. 
+         Creating a placeholder FrameLayout for it or using custom view package. 
+         Since ResultView is not created yet, I will put a FrameLayout container. -->
+    <FrameLayout
+        android:id="@+id/container_result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/action_stop"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/button_grey" />
+
+</FrameLayout>
