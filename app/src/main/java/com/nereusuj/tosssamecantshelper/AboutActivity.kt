@@ -15,6 +15,8 @@ class AboutActivity : AppCompatActivity() {
         binding = ActivityAboutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.tvVersion.text = getString(R.string.about_version, BuildConfig.VERSION_NAME)
+
         binding.tvWebsite.setOnClickListener {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.about_website)))
             startActivity(browserIntent)

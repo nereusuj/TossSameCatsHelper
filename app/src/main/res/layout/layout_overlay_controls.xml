@@ -111,11 +111,23 @@
     </HorizontalScrollView>
 
     <Button
-        android:id="@+id/btn_stop"
+        android:id="@+id/btn_back"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="@string/action_stop"
+        android:text="@string/action_back"
+        android:visibility="gone"
+        android:backgroundTint="@color/button_grey"
+        android:textColor="@color/white"
+        android:minHeight="48dp"
+        android:layout_marginEnd="8dp"/>
+
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/action_start"
         android:visibility="gone"
         android:backgroundTint="@color/button_grey"
         android:textColor="@color/white"

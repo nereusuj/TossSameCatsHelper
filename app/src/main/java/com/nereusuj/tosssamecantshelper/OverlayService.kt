@@ -47,10 +47,19 @@ class OverlayService : Service() {
         R.id.btn_6x5 to Pair(6, 5)
     )
 
+    private var autoPlayJob: kotlinx.coroutines.Job? = null
+    private var isPlaying = false
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            stopSelf()
+            return
+        }
+
         startForegroundService()
         
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -105,8 +114,12 @@ class OverlayService : Service() {
             stopSelf()
         }
 
-        controlsView.findViewById<Button>(R.id.btn_stop).setOnClickListener {
+        controlsView.findViewById<Button>(R.id.btn_back).setOnClickListener {
             stopAnalysis()
+        }
+
+        controlsView.findViewById<Button>(R.id.btn_start).setOnClickListener {
+            toggleAutoPlay()
         }
 
         windowManager.addView(controlsView, params)
@@ -128,10 +141,6 @@ class OverlayService : Service() {
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, // Draw over status bar
             PixelFormat.TRANSLUCENT
         )
-        // Initially not added or invisible. Better to add and set GONE.
-        // Or add only when needed. Lets add only when needed to save resources/touch events.
-        
-        // ResultView initialized
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -156,9 +165,6 @@ class OverlayService : Service() {
             // Hide controls
             controlsView.visibility = View.GONE
             
-            // Wait a bit for UI to hide? No, ScreenCapture should grab what's on screen.
-            // But if controls are visible, they might cover the game. 
-            // Better to hide controls, wait 100ms, then capture.
             withContext(Dispatchers.IO) {
                 Thread.sleep(200) 
             }
@@ -177,12 +183,24 @@ class OverlayService : Service() {
         }
     }
 
+    private var currentResults: List<CardResult> = emptyList()
+
     private fun showResults(results: List<CardResult>) {
+        currentResults = results
         resultView.setResults(results)
         addResultWindow()
         
         controlsView.findViewById<View>(R.id.scroll_grids).visibility = View.GONE
-        controlsView.findViewById<View>(R.id.btn_stop).visibility = View.VISIBLE
+        // controlsView.findViewById<View>(R.id.btn_stop).visibility = View.GONE
+        
+        val btnBack = controlsView.findViewById<Button>(R.id.btn_back)
+        val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
+        
+        btnBack.visibility = View.VISIBLE
+        btnStart.visibility = View.VISIBLE
+        btnStart.text = getString(R.string.action_start)
+        isPlaying = false
+
         controlsView.visibility = View.VISIBLE
     }
 
@@ -205,7 +223,6 @@ class OverlayService : Service() {
             params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        // Ensure resultView is removed from any parent before adding
         if (resultView.parent != null) {
             (resultView.parent as android.view.ViewGroup).removeView(resultView)
         }
@@ -213,16 +230,18 @@ class OverlayService : Service() {
     }
     
     private fun stopAnalysis() {
-        // Remove Result Window
+        // Stop Auto Play if running
+        stopAutoPlay()
+
         try {
             windowManager.removeView(resultView)
         } catch (e: Exception) {}
         
         controlsView.findViewById<View>(R.id.scroll_grids).visibility = View.VISIBLE
-        controlsView.findViewById<View>(R.id.btn_stop).visibility = View.GONE
+        controlsView.findViewById<View>(R.id.btn_back).visibility = View.GONE
+        controlsView.findViewById<View>(R.id.btn_start).visibility = View.GONE
         controlsView.visibility = View.VISIBLE
 
-        // Auto-scroll to next button
         if (currentGridId != 0) {
             val keys = rules.keys.toList()
             val currentIndex = keys.indexOf(currentGridId)
@@ -233,16 +252,114 @@ class OverlayService : Service() {
                 
                 if (nextButton != null && scrollView != null) {
                     scrollView.post {
-                        val scrollX = nextButton.left - (scrollView.width / 2) + (nextButton.width / 2)
-                        // Or just scroll to the button's left if we want it at the start, 
-                        // but centering or ensuring it's visible is better. 
-                        // The user request says "move to next step", so let's try to make sure it's visible.
-                        // Simple approach: scroll to the next button's left position.
                         scrollView.smoothScrollTo(nextButton.left, 0)
                     }
                 }
             }
         }
+    }
+
+    private fun toggleAutoPlay() {
+        if (isPlaying) {
+            stopAutoPlay()
+        } else {
+            startAutoPlay()
+        }
+    }
+
+    private fun stopAutoPlay() {
+        autoPlayJob?.cancel()
+        autoPlayJob = null
+        isPlaying = false
+        val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
+        btnStart.text = getString(R.string.action_start)
+    }
+
+    private fun startAutoPlay() {
+        if (AutoClickService.instance == null) {
+             Toast.makeText(this, getString(R.string.error_accessibility_disabled), Toast.LENGTH_SHORT).show()
+             return
+        }
+
+        isPlaying = true
+        val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
+        btnStart.text = getString(R.string.action_pause)
+
+        autoPlayJob = serviceScope.launch {
+            try {
+                // Sort Logic
+                // Group by ID
+                val grouped = currentResults.groupBy { it.groupId }
+                
+                // Separate pairs and singles
+                val pairs = grouped.filter { it.value.size >= 2 }.toSortedMap()
+                val singles = grouped.filter { it.value.size < 2 }.toSortedMap()
+                
+                // Iterate pairs
+                for ((groupId, cards) in pairs) {
+                    processGroup(cards)
+                    // Delay between groups
+                    val delay = (500L..1000L).random()
+                    kotlinx.coroutines.delay(delay)
+                }
+
+                // Iterate singles (last)
+                for ((groupId, cards) in singles) {
+                    processGroup(cards)
+                    // Delay between groups
+                    val delay = (500L..1000L).random()
+                    kotlinx.coroutines.delay(delay)
+                }
+                
+                // Done
+                withContext(Dispatchers.Main) {
+                    stopAutoPlay()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private suspend fun processGroup(cards: List<CardResult>) {
+        if (cards.isEmpty()) return
+        
+        // Click first card
+        clickCard(cards[0])
+
+        if (cards.size > 1) {
+             // Random delay between 1st and 2nd card
+            val delay = (300L..500L).random()
+            kotlinx.coroutines.delay(delay)
+            
+            // Click second card (and others if any, though usually pairs)
+            for (i in 1 until cards.size) {
+                 clickCard(cards[i])
+                 if (i < cards.size - 1) {
+                     val nextDelay = (300L..500L).random()
+                     kotlinx.coroutines.delay(nextDelay)
+                 }
+            }
+        }
+    }
+
+    private fun clickCard(card: CardResult) {
+        val rect = card.rect
+        val centerX = rect.centerX()
+        val centerY = rect.centerY()
+        
+        // Random offset +/- 20% of card size
+        val maxOffsetX = (rect.width() * 0.2).toInt()
+        val maxOffsetY = (rect.height() * 0.2).toInt()
+
+        val offsetX = (-maxOffsetX..maxOffsetX).random()
+        val offsetY = (-maxOffsetY..maxOffsetY).random()
+        
+        val targetX = centerX + offsetX
+        val targetY = centerY + offsetY
+        
+        AutoClickService.instance?.click(targetX, targetY)
     }
 
     override fun onDestroy() {
@@ -254,5 +371,6 @@ class OverlayService : Service() {
             windowManager.removeView(resultView) // if attached
         } catch (e: Exception) {}
         screenCaptureManager.stop()
+        autoPlayJob?.cancel()
     }
 }
