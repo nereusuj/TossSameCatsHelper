@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">고양이를 찾아줘</string>
-    <string name="action_back">뒤로</string>
+
     <string name="action_start">시작</string>
     <string name="action_pause">중지</string>
     <string name="action_exit">종료</string>
@@ -13,7 +13,7 @@
     <string name="overlay_channel_name">오버레이 서비스</string>
     <string name="overlay_notification_title">고양이를 찾아줘</string>
     <string name="overlay_notification_content">오버레이가 실행 중입니다</string>
-    <string name="msg_saved">저장됨: %s</string>
+
     <string name="error_capture_failed">화면 캡처 실패</string>
     <string name="permission_required">오버레이, 접근성 및 화면 캡처 권한이 필요합니다.</string>
     <string name="error_accessibility_disabled">접근성 서비스가 활성화되지 않았습니다</string>

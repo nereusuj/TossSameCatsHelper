@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -34,19 +35,7 @@ class OverlayService : Service() {
     
     private val serviceScope = CoroutineScope(Dispatchers.Main)
 
-    private var currentGridId: Int = 0
-
-    private var rules = mapOf(
-        R.id.btn_2x2 to Pair(2, 2),
-        R.id.btn_3x2 to Pair(3, 2),
-        R.id.btn_4x2 to Pair(4, 2),
-        R.id.btn_4x3 to Pair(4, 3),
-        R.id.btn_4x4 to Pair(4, 4),
-        R.id.btn_5x4 to Pair(5, 4),
-        R.id.btn_6x4 to Pair(6, 4),
-        R.id.btn_6x5 to Pair(6, 5)
-    )
-
+    private var analysisJob: kotlinx.coroutines.Job? = null
     private var autoPlayJob: kotlinx.coroutines.Job? = null
     private var isPlaying = false
 
@@ -102,24 +91,16 @@ class OverlayService : Service() {
         params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
         params.y = 100 // Margin from top
 
-        // Setup Buttons
-        rules.forEach { (id, grid) ->
-            controlsView.findViewById<Button>(id).setOnClickListener {
-                currentGridId = id
-                startAnalysis(grid.first, grid.second)
-            }
-        }
-
         controlsView.findViewById<Button>(R.id.btn_exit).setOnClickListener {
             stopSelf()
         }
 
-        controlsView.findViewById<Button>(R.id.btn_back).setOnClickListener {
-            stopAnalysis()
-        }
-
         controlsView.findViewById<Button>(R.id.btn_start).setOnClickListener {
-            toggleAutoPlay()
+            if (isPlaying || analysisJob?.isActive == true) {
+                stopAnalysis()
+            } else {
+                startAnalysis()
+            }
         }
 
         windowManager.addView(controlsView, params)
@@ -160,22 +141,24 @@ class OverlayService : Service() {
         return START_STICKY
     }
 
-    private fun startAnalysis(rows: Int, cols: Int) {
-        serviceScope.launch {
+    private fun startAnalysis() {
+        analysisJob = serviceScope.launch {
             // Hide controls
             controlsView.visibility = View.GONE
             
-            withContext(Dispatchers.IO) {
-                Thread.sleep(200) 
-            }
+            delay(200)
 
             val bitmap = screenCaptureManager.capture()
             if (bitmap != null) {
                 val results = withContext(Dispatchers.Default) {
-                    imageAnalyzer.analyze(bitmap, rows, cols)
+                    imageAnalyzer.analyze(bitmap, 6, 5)
                 }
                 
                 showResults(results)
+                
+                // Delay 4 seconds then start auto play
+                delay(4000)
+                startAutoPlay()
             } else {
                 Toast.makeText(this@OverlayService, getString(R.string.error_capture_failed), Toast.LENGTH_SHORT).show()
                 controlsView.visibility = View.VISIBLE
@@ -190,17 +173,10 @@ class OverlayService : Service() {
         resultView.setResults(results)
         addResultWindow()
         
-        controlsView.findViewById<View>(R.id.scroll_grids).visibility = View.GONE
-        // controlsView.findViewById<View>(R.id.btn_stop).visibility = View.GONE
-        
-        val btnBack = controlsView.findViewById<Button>(R.id.btn_back)
         val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
+        btnStart.text = getString(R.string.action_pause)
         
-        btnBack.visibility = View.VISIBLE
-        btnStart.visibility = View.VISIBLE
-        btnStart.text = getString(R.string.action_start)
-        isPlaying = false
-
+        isPlaying = true // Considered playing from the moment results are shown (waiting for auto play)
         controlsView.visibility = View.VISIBLE
     }
 
@@ -230,49 +206,17 @@ class OverlayService : Service() {
     }
     
     private fun stopAnalysis() {
-        // Stop Auto Play if running
-        stopAutoPlay()
+        analysisJob?.cancel()
+        autoPlayJob?.cancel()
+        isPlaying = false
 
         try {
             windowManager.removeView(resultView)
         } catch (e: Exception) {}
         
-        controlsView.findViewById<View>(R.id.scroll_grids).visibility = View.VISIBLE
-        controlsView.findViewById<View>(R.id.btn_back).visibility = View.GONE
-        controlsView.findViewById<View>(R.id.btn_start).visibility = View.GONE
-        controlsView.visibility = View.VISIBLE
-
-        if (currentGridId != 0) {
-            val keys = rules.keys.toList()
-            val currentIndex = keys.indexOf(currentGridId)
-            if (currentIndex != -1 && currentIndex < keys.size - 1) {
-                val nextGridId = keys[currentIndex + 1]
-                val nextButton = controlsView.findViewById<Button>(nextGridId)
-                val scrollView = controlsView.findViewById<android.widget.HorizontalScrollView>(R.id.scroll_grids)
-                
-                if (nextButton != null && scrollView != null) {
-                    scrollView.post {
-                        scrollView.smoothScrollTo(nextButton.left, 0)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun toggleAutoPlay() {
-        if (isPlaying) {
-            stopAutoPlay()
-        } else {
-            startAutoPlay()
-        }
-    }
-
-    private fun stopAutoPlay() {
-        autoPlayJob?.cancel()
-        autoPlayJob = null
-        isPlaying = false
         val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
         btnStart.text = getString(R.string.action_start)
+        controlsView.visibility = View.VISIBLE
     }
 
     private fun startAutoPlay() {
@@ -281,9 +225,8 @@ class OverlayService : Service() {
              return
         }
 
+        // isPlaying is already true from showResults, or we ensure it here
         isPlaying = true
-        val btnStart = controlsView.findViewById<Button>(R.id.btn_start)
-        btnStart.text = getString(R.string.action_pause)
 
         autoPlayJob = serviceScope.launch {
             try {
@@ -313,7 +256,7 @@ class OverlayService : Service() {
                 
                 // Done
                 withContext(Dispatchers.Main) {
-                    stopAutoPlay()
+                    stopAnalysis()
                 }
 
             } catch (e: Exception) {
