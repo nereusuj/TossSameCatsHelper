@@ -38,6 +38,9 @@ class OverlayService : Service() {
     private var analysisJob: kotlinx.coroutines.Job? = null
     private var autoPlayJob: kotlinx.coroutines.Job? = null
     private var isPlaying = false
+    
+    private var currentRepetition = 0
+    private val MAX_REPETITIONS = 8
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -99,6 +102,7 @@ class OverlayService : Service() {
             if (isPlaying || analysisJob?.isActive == true) {
                 stopAnalysis()
             } else {
+                currentRepetition = 0
                 startAnalysis()
             }
         }
@@ -146,6 +150,13 @@ class OverlayService : Service() {
             // Hide controls
             controlsView.visibility = View.GONE
             
+            // Ensure result view is removed to capture clean screen
+            withContext(Dispatchers.Main) {
+                try {
+                    windowManager.removeView(resultView)
+                } catch (e: Exception) {}
+            }
+
             delay(200)
 
             val bitmap = screenCaptureManager.capture()
@@ -256,11 +267,28 @@ class OverlayService : Service() {
                 
                 // Done
                 withContext(Dispatchers.Main) {
-                    stopAnalysis()
+                    currentRepetition++
+                    if (currentRepetition < MAX_REPETITIONS) {
+                        // Clear results from screen
+                        try {
+                            windowManager.removeView(resultView)
+                        } catch (e: Exception) {}
+                        
+                        // Wait 3.5 seconds
+                        delay(3500)
+                        
+                        // Restart analysis
+                        startAnalysis()
+                    } else {
+                        stopAnalysis()
+                    }
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                   stopAnalysis()
+                }
             }
         }
     }
