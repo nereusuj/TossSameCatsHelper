@@ -13,8 +13,8 @@ android {
         applicationId = "com.nereusuj.tosssamecantshelper"
         minSdk = 31
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.3"
+        versionCode = 4
+        versionName = "1.4"
         setProperty("archivesBaseName", "TossSameCatsHelper")
 
     }

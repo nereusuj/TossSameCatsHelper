@@ -253,7 +253,7 @@ class OverlayService : Service() {
                 for ((groupId, cards) in pairs) {
                     processGroup(cards)
                     // Delay between groups
-                    val delay = (500L..1000L).random()
+                    val delay = (500L..800L).random()
                     kotlinx.coroutines.delay(delay)
                 }
 
@@ -261,7 +261,7 @@ class OverlayService : Service() {
                 for ((groupId, cards) in singles) {
                     processGroup(cards)
                     // Delay between groups
-                    val delay = (500L..1000L).random()
+                    val delay = (500L..800L).random()
                     kotlinx.coroutines.delay(delay)
                 }
                 
@@ -275,7 +275,7 @@ class OverlayService : Service() {
                         } catch (e: Exception) {}
                         
                         // Wait 3.5 seconds
-                        delay(3500)
+                        delay(3000)
                         
                         // Restart analysis
                         startAnalysis()
@@ -301,14 +301,14 @@ class OverlayService : Service() {
 
         if (cards.size > 1) {
              // Random delay between 1st and 2nd card
-            val delay = (300L..500L).random()
+            val delay = (300L..400L).random()
             kotlinx.coroutines.delay(delay)
             
             // Click second card (and others if any, though usually pairs)
             for (i in 1 until cards.size) {
                  clickCard(cards[i])
                  if (i < cards.size - 1) {
-                     val nextDelay = (300L..500L).random()
+                     val nextDelay = (300L..400L).random()
                      kotlinx.coroutines.delay(nextDelay)
                  }
             }
